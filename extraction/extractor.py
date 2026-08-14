@@ -17,7 +17,11 @@ from extraction.prompts import (
     DOCUMENT_PROMPTS,
 )
 
-from extraction.schema import DOCUMENT_SCHEMAS
+from extraction.schema import (
+    DOCUMENT_SCHEMAS,
+    extract_confidences,
+    flatten,
+)
 from extraction.sanitizer import wrap_as_data
 
 logger = logging.getLogger(__name__)
@@ -167,8 +171,12 @@ class DocumentExtractor:
             validated = schema.model_validate(
                 data
             )
-            validated.document_type = document_type  # toujours la valeur de routage réelle, jamais celle du LLM
 
+            # Le routage (quel type de document on traite) est décidé
+            # par le pipeline, jamais par le contenu du document. On ne
+            # fait pas confiance à un éventuel "document_type" présent
+            # dans le JSON retourné par le LLM.
+            validated.document_type = document_type
 
             return validated
 
@@ -244,10 +252,24 @@ class DocumentExtractor:
         ocr_text: str,
         document_type: str
     ) -> Dict[str, Any]:
+        """Retourne trois vues du même résultat :
+
+        - "data" : valeurs aplaties (champ -> valeur brute), ce que
+          rule_engine.checks attend.
+        - "confidences" : champ -> indice de confiance (EB-125), pour
+          comparaison au seuil dans validation_agent.py.
+        - "raw" : dump complet imbriqué {value, confidence}, conservé
+          tel quel pour le journal d'audit (traçabilité fidèle de ce
+          que le LLM a réellement produit).
+        """
 
         result = self.extract(
             ocr_text,
             document_type
         )
 
-        return result.model_dump()
+        return {
+            "data": flatten(result),
+            "confidences": extract_confidences(result),
+            "raw": result.model_dump(),
+        }

@@ -4,7 +4,6 @@ PDF Loader
 Convertit un PDF en images OpenCV
 ===========================================================
 """
-from config.settings import settings
 
 from pathlib import Path
 import fitz
@@ -14,7 +13,7 @@ import numpy as np
 
 class PDFLoader:
 
-    def __init__(self, dpi=settings.ocr_dpi):
+    def __init__(self, dpi=300):
         self.dpi = dpi
 
     def load(self, pdf_path):

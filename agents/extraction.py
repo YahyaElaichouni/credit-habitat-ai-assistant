@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class ExtractionAgent:
 
-    def __init__(self, model: settings.llm_model):
+    def __init__(self, model: str = "mistral"):
 
         logger.debug("Initialisation de l'Extraction Agent (%s)", model)
 
@@ -40,7 +40,9 @@ class ExtractionAgent:
 
         Retourne un dict :
             {
-                "extracted_data": {...},   # sortie de l'extraction IA
+                "data": {...},          # valeurs aplaties, pour rule_engine
+                "confidences": {...},   # champ -> confiance (EB-125)
+                "raw": {...},           # dump imbriqué complet, pour l'audit
                 "security": {
                     "suspicious": bool,
                     "matched_patterns": [...]
@@ -82,7 +84,7 @@ class ExtractionAgent:
         logger.info("[ExtractionAgent] Traitement : %s", document_type)
 
         try:
-            extracted_data = self.extractor.extract_json(
+            extraction_result = self.extractor.extract_json(
                 ocr_text=ocr_text,
                 document_type=document_type
             )
@@ -96,7 +98,7 @@ class ExtractionAgent:
         logger.info("[ExtractionAgent] Extraction terminée.")
 
         return {
-            "extracted_data": extracted_data,
+            **extraction_result,  # data / confidences / raw
             "security": {
                 "suspicious": scan_result.suspicious,
                 "matched_patterns": scan_result.matched_patterns,
