@@ -12,6 +12,7 @@ adaptez la méthode `image_to_text()` en conséquence.
 
 import logging
 
+import cv2
 from paddleocr import PaddleOCR
 
 from ocr.pdf_loader import PDFLoader
@@ -29,6 +30,7 @@ class OCREngine:
         self.reader = PaddleOCR(
             lang="fr",
             use_textline_orientation=True,
+            engine="onnxruntime",
         )
 
         self.loader = PDFLoader()
@@ -50,6 +52,15 @@ class OCREngine:
         """
 
         processed = self.preprocessor.preprocess(image)
+
+        # Le pipeline interne de PaddleOCR (correction d'orientation,
+        # redressement du document) attend une image à 3 canaux, même
+        # si le contenu est en niveaux de gris. Notre préprocesseur
+        # produit une image à un seul canal (grayscale/binarisée) :
+        # on la reconvertit avant transmission, sinon PaddleOCR échoue
+        # avec "IndexError: tuple index out of range" (img.shape[2]).
+        if processed.ndim == 2:
+            processed = cv2.cvtColor(processed, cv2.COLOR_GRAY2RGB)
 
         raw_result = self.reader.predict(processed)
 
