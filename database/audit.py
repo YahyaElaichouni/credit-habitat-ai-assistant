@@ -198,10 +198,21 @@ def log_human_confirmation(
     confirmed_value: Any,
     advisor_id: str,
     session_id: Optional[str] = None,
+    original_value: Any = None,
 ) -> None:
     """À appeler depuis l'interface, quand un conseiller confirme ou
     corrige manuellement un champ (EB-106 : rien n'est validé sans
-    ce type d'événement)."""
+    ce type d'événement).
+
+    Si `original_value` est fourni et diffère de `confirmed_value`,
+    l'événement est journalisé comme une correction plutôt qu'une
+    simple confirmation — utile pour mesurer, a posteriori, le taux
+    réel de champs corrigés par les conseillers (indicateur de
+    fiabilité de l'extraction, cf. section 9 du cahier des charges)."""
+
+    was_corrected = (
+        original_value is not None and confirmed_value != original_value
+    )
 
     log_event(
         event_type="human_confirmation",
@@ -211,7 +222,11 @@ def log_human_confirmation(
         document_type=document_type,
         field_name=field_name,
         value=confirmed_value,
-        decision="confirmé_par_humain",
+        decision="corrigé_par_humain" if was_corrected else "confirmé_par_humain",
+        details=(
+            {"valeur_extraite_initiale": original_value}
+            if was_corrected else None
+        ),
     )
 
 

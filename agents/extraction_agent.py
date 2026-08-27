@@ -8,6 +8,7 @@ Projet PFE Crédit Agricole du Maroc
 import logging
 from typing import Any, Dict
 
+from config.settings import settings
 from extraction.extractor import DocumentExtractor
 from extraction.sanitizer import scan_for_injection
 from rule_engine.checks import RULES
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class ExtractionAgent:
 
-    def __init__(self, model: str = "mistral"):
+    def __init__(self, model: str = settings.llm_model):
 
         logger.debug("Initialisation de l'Extraction Agent (%s)", model)
 

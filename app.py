@@ -198,15 +198,28 @@ if result is not None:
                         st.caption(f"confiance : {confidence:.2f}")
 
                 with col_value:
-                    st.write(value if value is not None else "—")
+                    edited_value = st.text_input(
+                        f"Valeur — {field_name}",
+                        value=str(value) if value is not None else "",
+                        key=f"input_{field_name}",
+                        label_visibility="collapsed",
+                        disabled=already_confirmed,
+                        placeholder="Non extrait — à saisir manuellement",
+                    )
                     for reason in reasons:
                         st.caption(f"⚠️ {reason}")
 
                 with col_action:
                     if already_confirmed:
                         st.caption("✅ Confirmé")
-                    elif value is not None:
-                        if st.button("Confirmer", key=f"confirm_{field_name}"):
+                    else:
+                        button_label = (
+                            "Confirmer"
+                            if edited_value == (str(value) if value is not None else "")
+                            else "Enregistrer la correction"
+                        )
+                        if st.button(button_label, key=f"confirm_{field_name}"):
+                            final_value = edited_value if edited_value != "" else None
                             audit.log_human_confirmation(
                                 document_path=st.session_state.get(
                                     "last_saved_path", ""
@@ -215,11 +228,12 @@ if result is not None:
                                     "last_document_type", document_type
                                 ),
                                 field_name=field_name,
-                                confirmed_value=value,
+                                confirmed_value=final_value,
                                 advisor_id=advisor_id,
                                 session_id=st.session_state.session_id,
+                                original_value=value,
                             )
-                            st.session_state.confirmed_fields[field_name] = value
+                            st.session_state.confirmed_fields[field_name] = final_value
                             st.rerun()
 
             st.divider()
