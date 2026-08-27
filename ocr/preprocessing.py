@@ -101,6 +101,12 @@ class ImagePreprocessor:
 
         image = self.threshold(image)
 
-        image = self.resize(image)
+        # Le resize x2 a été retiré : à DPI 300 (voire 150), l'image
+        # est déjà grande, et PaddleOCR la redécoupe de toute façon
+        # en interne (max_side_limit). Le doublement systématique
+        # coûtait du temps de calcul pour un gain nul, voire négatif.
+        # Si l'OCR se dégrade sur de petits documents à faible DPI,
+        # réintroduire un resize conditionnel (seulement si l'image
+        # est petite) plutôt qu'un doublement systématique.
 
         return image

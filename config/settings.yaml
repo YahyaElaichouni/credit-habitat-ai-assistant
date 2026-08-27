@@ -35,7 +35,7 @@ llm:
   model: "llama3:latest"
 
 ocr:
-  dpi: 300
+  dpi: 150
 
 paths:
   documents_dir: "data/docs"

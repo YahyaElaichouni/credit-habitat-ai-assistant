@@ -22,7 +22,11 @@ from database import audit
 from extraction.schema import DOCUMENT_SCHEMAS
 from workflows.document_workflow import workflow
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s.%(msecs)03d %(levelname)s %(name)s: %(message)s",
+    datefmt="%H:%M:%S",
+)
 
 st.set_page_config(
     page_title="Test extraction — Crédit Habitat",
