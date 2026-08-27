@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class ExtractionAgent:
 
-    def __init__(self, model: str = "llama3:latest "):
+    def __init__(self, model: str = "mistral"):
 
         logger.debug("Initialisation de l'Extraction Agent (%s)", model)
 

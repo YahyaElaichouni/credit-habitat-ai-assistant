@@ -32,7 +32,7 @@ document:
     - ".jpeg"
 
 llm:
-  model: "mistral"
+  model: "llama3:latest"
 
 ocr:
   dpi: 300
