@@ -36,6 +36,12 @@ class Settings:
 
     ocr_dpi: int
 
+    rag_embedding_model: str
+    rag_chunk_size: int
+    rag_chunk_overlap: int
+    rag_top_k: int
+    rag_similarity_threshold: float
+
     documents_dir: Path
     samples_dir: Path
     database_path: Path
@@ -82,6 +88,11 @@ def load_settings(config_path: Path = CONFIG_PATH) -> Settings:
             ),
             llm_model=raw["llm"]["model"],
             ocr_dpi=int(raw["ocr"]["dpi"]),
+            rag_embedding_model=raw["rag"]["embedding_model"],
+            rag_chunk_size=int(raw["rag"]["chunk_size"]),
+            rag_chunk_overlap=int(raw["rag"]["chunk_overlap"]),
+            rag_top_k=int(raw["rag"]["top_k"]),
+            rag_similarity_threshold=float(raw["rag"]["similarity_threshold"]),
             documents_dir=Path(raw["paths"]["documents_dir"]),
             samples_dir=Path(raw["paths"]["samples_dir"]),
             database_path=Path(raw["paths"]["database_path"]),

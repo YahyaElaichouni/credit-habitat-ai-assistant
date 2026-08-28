@@ -191,6 +191,29 @@ def log_field_decision(
     )
 
 
+def log_chat_interaction(
+    question: str,
+    answer: str,
+    in_scope: bool,
+    sources: List[str],
+    advisor_id: Optional[str] = None,
+    session_id: Optional[str] = None,
+) -> None:
+    """Trace chaque échange avec l'assistant conversationnel (EB-228
+    s'applique aussi au RAG, pas seulement à l'extraction) : la
+    question posée, si elle a été jugée dans le périmètre, la
+    réponse donnée et les sources citées."""
+
+    log_event(
+        event_type="chat_interaction",
+        advisor_id=advisor_id,
+        session_id=session_id,
+        decision="dans_perimetre" if in_scope else "hors_perimetre",
+        value=answer,
+        details={"question": question, "sources": sources},
+    )
+
+
 def log_human_confirmation(
     document_path: str,
     document_type: str,
