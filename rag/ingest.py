@@ -41,15 +41,34 @@ logger = logging.getLogger(__name__)
 # =========================================================
 
 def load_pdf_text(pdf_path: Path) -> str:
-    """Extrait le texte natif d'un PDF, page par page."""
+    """Extrait le texte natif d'un PDF, bloc par bloc (~paragraphe),
+    plutôt que page par page.
+
+    page.get_text() (mode par défaut) ne sépare pas les paragraphes
+    par une ligne vide — tout un article de CGU ressort comme un
+    unique bloc de texte, ce qui casse split_text() (basé sur \\n\\n
+    pour repérer les paragraphes) et produit des chunks coupés en
+    plein milieu des phrases. Le mode "blocks" retourne chaque
+    paragraphe/titre comme un élément séparé, qu'on rejoint ici avec
+    \\n\\n pour reconstruire des frontières de paragraphes exploitables.
+    """
 
     document = fitz.open(pdf_path)
     try:
-        pages_text = [page.get_text() for page in document]
+        paragraphs = []
+        for page in document:
+            blocks = page.get_text("blocks")
+            # Tri dans l'ordre de lecture : haut en bas, gauche à droite
+            # (get_text("blocks") ne garantit pas cet ordre par défaut).
+            blocks = sorted(blocks, key=lambda b: (round(b[1], 1), b[0]))
+            for block in blocks:
+                text = block[4].strip()
+                if text:
+                    paragraphs.append(text)
     finally:
         document.close()
 
-    return "\n\n".join(t.strip() for t in pages_text if t.strip())
+    return "\n\n".join(paragraphs)
 
 
 # =========================================================
