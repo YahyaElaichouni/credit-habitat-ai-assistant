@@ -46,6 +46,7 @@ page_icon="🏦",
 layout="wide",
 )
 
+
 # =========================================================
 
 # DESIGN
@@ -360,18 +361,27 @@ st.markdown("""
 
 # =========================================================
 
-st.markdown("""
+import streamlit as st
+import base64
 
-<div class="app-header">
-    <div class="brand-icon">CA</div>
-    <div>
-        <div class="brand-title">CRÉDIT AGRICOLE DU MAROC</div>
-        <div class="brand-subtitle">
-            Assistant IA — Crédit Habitat
+def get_image_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
+
+logo = get_image_base64("assets/logo_ca.jpg")
+
+st.markdown(
+    f"""
+    <div class="app-header">
+        <div class="brand-icon">
+            <img src="data:image/jpeg;base64,{logo}" alt="Crédit Agricole du Maroc">
         </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+
+        
+    
+    """,
+    unsafe_allow_html=True
+)
 
 # =========================================================
 
