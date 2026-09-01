@@ -686,6 +686,9 @@ if "theme" not in st.session_state:
 if "processing" not in st.session_state:
     st.session_state.processing = False
 
+if "last_error" not in st.session_state:
+    st.session_state.last_error = None
+
 # =========================================================
 # SIDEBAR AMÉLIORÉE AVEC GESTION CLIENT
 # =========================================================
@@ -1064,6 +1067,19 @@ elif st.session_state.page == "Extraction":
             key="declared_json_area"
         )
     
+    # -----------------------------------------------------
+    # ERREUR PERSISTEE (affichée après un st.rerun() suite à un échec)
+    # -----------------------------------------------------
+
+    if st.session_state.get("last_error"):
+        st.error(f"❌ Erreur lors du traitement : {st.session_state.last_error}")
+        with st.expander("🔍 Détails techniques"):
+            st.code(st.session_state.last_error)
+        if st.button("Fermer ce message"):
+            st.session_state.last_error = None
+            st.rerun()
+        st.divider()
+
     # Boutons d'action
     col_buttons = st.columns([1, 1])
     with col_buttons[0]:
@@ -1122,6 +1138,7 @@ elif st.session_state.page == "Extraction":
         
         # Traiter avec progression
         st.session_state.processing = True
+        st.session_state.last_error = None
         
         try:
             result = process_document_with_progress(
@@ -1152,8 +1169,14 @@ elif st.session_state.page == "Extraction":
             
         except Exception as e:
             st.session_state.documents[doc_id]["status"] = "error"
-            st.error(f"❌ Erreur lors du traitement : {str(e)}")
-            st.expander("🔍 Détails techniques").code(str(e))
+            # st.error() affiché juste avant st.rerun() disparaît
+            # instantanément (le rerun efface tout ce qui vient d'être
+            # rendu) : on stocke le message en session_state pour le
+            # ré-afficher après le rerun, au lieu de le perdre.
+            st.session_state.last_error = str(e)
+            logging.exception(
+                "[Interface] Échec du traitement du document %s", doc_id
+            )
         finally:
             st.session_state.processing = False
             st.rerun()

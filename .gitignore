@@ -19,6 +19,11 @@ __pycache__/
 *.db
 *.sqlite3
 
+# Fichiers uploadés temporairement par l'interface (stockage
+# d'exécution, pas du code — ne doit jamais être versionné)
+data/uploads/*
+!data/uploads/.gitkeep
+
 # Logs
 logs/
 
