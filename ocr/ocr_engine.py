@@ -31,6 +31,16 @@ class OCREngine:
             lang="fr",
             use_textline_orientation=True,
             engine="onnxruntime",
+            # Ces deux étapes ajoutent chacune un modèle d'inférence
+            # supplémentaire par page (PP-LCNet_x1_0_doc_ori, UVDoc) et
+            # ne sont utiles que pour des scans de travers ou déformés.
+            # Pour des documents déjà à plat et correctement orientés
+            # (cas courant pour un scan/photo de CIN, bulletin...), les
+            # désactiver réduit sensiblement le temps d'OCR par page.
+            # Réactivez-les si vos documents de test sont réellement
+            # tournés ou déformés.
+            use_doc_orientation_classify=False,
+            use_doc_unwarping=False,
         )
 
         self.loader = PDFLoader()

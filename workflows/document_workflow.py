@@ -64,9 +64,36 @@ class DocumentState(TypedDict, total=False):
 # AGENTS (instanciés une fois, réutilisés à chaque appel)
 # =========================================================
 
-ocr_agent = OCRAgent()
-extraction_agent = ExtractionAgent()
-validation_agent = ValidationAgent()
+# Chargement paresseux : PaddleOCR (OCREngine) et le LLM ne se
+# chargent qu'à la première utilisation réelle du pipeline, pas à
+# l'import de ce module. Sans ça, démarrer l'application charge
+# systématiquement OCR + LLM même pour une session qui n'utilisera
+# que l'assistant conversationnel (rag_agent, module séparé).
+
+_ocr_agent = None
+_extraction_agent = None
+_validation_agent = None
+
+
+def get_ocr_agent() -> OCRAgent:
+    global _ocr_agent
+    if _ocr_agent is None:
+        _ocr_agent = OCRAgent()
+    return _ocr_agent
+
+
+def get_extraction_agent() -> ExtractionAgent:
+    global _extraction_agent
+    if _extraction_agent is None:
+        _extraction_agent = ExtractionAgent()
+    return _extraction_agent
+
+
+def get_validation_agent() -> ValidationAgent:
+    global _validation_agent
+    if _validation_agent is None:
+        _validation_agent = ValidationAgent()
+    return _validation_agent
 
 
 # =========================================================
@@ -94,7 +121,7 @@ def ocr_node(state: DocumentState) -> Dict[str, Any]:
 
     logger.info("[Workflow] Étape OCR : %s", state["pdf_path"])
 
-    text = ocr_agent.execute(state["pdf_path"])
+    text = get_ocr_agent().execute(state["pdf_path"])
 
     return {"ocr_text": text}
 
@@ -105,7 +132,7 @@ def extraction_node(state: DocumentState) -> Dict[str, Any]:
         "[Workflow] Étape extraction : %s", state["document_type"]
     )
 
-    result = extraction_agent.run(
+    result = get_extraction_agent().run(
         ocr_text=state["ocr_text"],
         document_type=state["document_type"],
     )
@@ -122,7 +149,7 @@ def validation_node(state: DocumentState) -> Dict[str, Any]:
 
     logger.info("[Workflow] Étape validation")
 
-    result = validation_agent.run(
+    result = get_validation_agent().run(
         document_type=state["document_type"],
         data=state["extraction_data"],
         confidences=state["extraction_confidences"],

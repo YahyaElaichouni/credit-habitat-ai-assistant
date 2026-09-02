@@ -46,7 +46,19 @@ class ChatState(TypedDict, total=False):
 # AGENT (instancié une fois, réutilisé à chaque appel)
 # =========================================================
 
-rag_agent = RAGAgent()
+# Chargement paresseux : RAGAgent instancie SentenceTransformer
+# (bge-m3) et charge l'index FAISS — coûteux. On ne paie ce coût
+# qu'à la première question posée, pas à l'import du module (donc
+# pas si la session n'utilise que le pipeline d'extraction).
+
+_rag_agent = None
+
+
+def get_rag_agent() -> RAGAgent:
+    global _rag_agent
+    if _rag_agent is None:
+        _rag_agent = RAGAgent()
+    return _rag_agent
 
 
 # =========================================================
@@ -57,7 +69,7 @@ def rag_node(state: ChatState) -> Dict[str, Any]:
 
     logger.info("[Workflow] Étape RAG : %s", state["question"])
 
-    result = rag_agent.run(state["question"])
+    result = get_rag_agent().run(state["question"])
 
     return {
         "answer": result["answer"],
